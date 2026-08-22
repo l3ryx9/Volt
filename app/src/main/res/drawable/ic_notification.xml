@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Icône dédiée à la barre de statut / notification.
+    IMPORTANT : contrairement à R.mipmap.ic_launcher (une "adaptive icon" XML
+    avec des calques <foreground>/<background>), une icône de notification
+    doit être un simple drawable (idéalement une silhouette blanche sur fond
+    transparent). Utiliser l'icône de lanceur adaptative ici fait planter le
+    service via BadForegroundServiceNotificationException.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="#FFFFFF">
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M13,2L4.09,12.61 C3.62,13.18 4.03,14 4.76,14 L11,14 L9.5,22 L18.91,11.39 C19.38,10.82 18.97,10 18.24,10 L12,10 L13,2 Z"/>
+</vector>

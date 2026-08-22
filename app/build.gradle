@@ -1,0 +1,137 @@
+plugins {
+    id 'com.android.application'
+    id 'kotlin-android'
+}
+
+android {
+    namespace 'com.voltai.doai'
+    compileSdk 35
+    ndkVersion "29.0.14206865"
+
+    defaultConfig {
+        applicationId "com.voltai.doai"
+        minSdk 26
+        targetSdk 35
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        ndk {
+            // arm64 = appareils réels ; x86/x86_64 = émulateurs / Ubuntu proot
+            // (qemu). v7a conservé.
+            abiFilters 'arm64-v8a', 'armeabi-v7a', 'x86', 'x86_64'
+        }
+    }
+
+    lintOptions {
+        checkReleaseBuilds false
+        abortOnError false
+    }
+
+    aaptOptions {
+        ignoreAssetsPattern "!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~"
+        cruncherEnabled false
+        noCompress "tflite"
+    }
+
+    signingConfigs {
+        release {
+            storeFile file("../voltai-signing-key.jks")
+            storePassword "voltai123"
+            keyAlias "voltai-key"
+            keyPassword "voltai123"
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+        coreLibraryDesugaringEnabled true
+    }
+
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+
+    buildFeatures {
+        compose true
+        buildConfig = true
+    }
+    
+    packagingOptions {
+        exclude 'META-INF/AL2.0'
+        exclude 'META-INF/LGPL2.1'
+        jniLibs {
+            // Hôte de build aarch64 : les outils NDK (llvm-strip) sont x86_64
+            // uniquement, donc on garde les .so tels quels (déjà compilés arm64).
+            keepDebugSymbols += '**/*.so'
+        }
+    }
+
+    composeOptions {
+        kotlinCompilerExtensionVersion "1.5.8"
+    }
+
+    buildToolsVersion "35.0.1"
+}
+
+dependencies {
+    implementation 'androidx.core:core-ktx:1.12.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'com.google.android.material:material:1.11.0'
+    
+    // Compose
+    implementation "androidx.compose.ui:ui:1.6.5"
+    implementation "androidx.compose.material:material:1.6.5"
+    implementation "androidx.compose.ui:ui-tooling-preview:1.6.5"
+    implementation 'androidx.activity:activity-compose:1.8.2'
+    
+    // Material 3
+    implementation "androidx.compose.material3:material3:1.2.1"
+    
+    // Coroutines
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3'
+    
+    // Lifecycle
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0'
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.7.0'
+    
+    // Navigation
+    implementation 'androidx.navigation:navigation-compose:2.7.7'
+    
+    // Material Icons Extended
+    implementation "androidx.compose.material:material-icons-extended:1.6.5"
+    
+    // Modèle Qwen : inférence distante (llama-server sur Google Colab) via
+    // QwenClient (HTTP/HTTPS). Aucun GGUF ni llama.cpp local embarqué dans
+    // l'APK : l'application se connecte au modèle déjà chargé sur Colab.
+
+    // Tree-sitter (parseur AST) — vrai natif Android, grammaires par AAR
+    implementation 'com.itsaky.androidide.treesitter:android-tree-sitter:4.3.2'
+    implementation 'com.itsaky.androidide.treesitter:tree-sitter-kotlin:4.3.2'
+    implementation 'com.itsaky.androidide.treesitter:tree-sitter-java:4.3.2'
+    implementation 'com.itsaky.androidide.treesitter:tree-sitter-python:4.3.2'
+    implementation 'com.itsaky.androidide.treesitter:tree-sitter-c:4.3.2'
+    implementation 'com.itsaky.androidide.treesitter:tree-sitter-cpp:4.3.2'
+    implementation 'com.itsaky.androidide.treesitter:tree-sitter-json:4.3.2'
+    implementation 'com.itsaky.androidide.treesitter:tree-sitter-xml:4.3.2'
+
+    // Desugaring requis par les bibliothèques Tree-sitter
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'
+    
+    // Testing
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+    androidTestImplementation "androidx.compose.ui:ui-test-junit4:1.6.5"
+    debugImplementation "androidx.compose.ui:ui-tooling:1.6.5"
+}
