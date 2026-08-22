@@ -59,7 +59,7 @@ fun TerminalContent() {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(VoltColors.Background)
+            .background(VoltColors.TerminalBackground)
     ) {
         // Zone du terminal (prend tout l'espace disponible)
         Box(
@@ -72,7 +72,7 @@ fun TerminalContent() {
                     TerminalView(ctx, null).apply {
                         setTerminalViewClient(holder.viewClient)
                         setTextSize(24)
-                        setBackgroundColor(VoltColors.Background.value.toInt())
+                        setBackgroundColor(VoltColors.TerminalBackground.value.toInt())
                         holder.attach(this)
                     }
                 },
@@ -95,7 +95,7 @@ private fun TerminalShortcutBar(holder: TerminalSessionHolder) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(VoltColors.Surface)
+            .background(VoltColors.TerminalBackground)
             .padding(horizontal = 6.dp, vertical = 6.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
@@ -146,14 +146,14 @@ private fun ShortcutKey(
             .fillMaxWidth()
             .height(36.dp)
             .clip(RoundedCornerShape(8.dp))
-            .background(VoltColors.ElevatedSurface)
+            .background(if (toggle) VoltColors.ExtraKeyActiveBackground else VoltColors.ExtraKeyBackground)
             .clickable { action(holder) }
             .padding(horizontal = 8.dp),
         contentAlignment = Alignment.Center
     ) {
         Text(
             text = label,
-            color = if (toggle) VoltColors.AccentBright else VoltColors.Text,
+            color = if (toggle) VoltColors.ExtraKeyActiveText else VoltColors.ExtraKeyText,
             fontSize = 13.sp,
             fontWeight = FontWeight.Medium,
             fontFamily = FontFamily.Monospace,
@@ -368,10 +368,10 @@ class TerminalSessionHolder {
      */
     private fun applyTheme() {
         val scheme = TerminalColors.COLOR_SCHEME
-        scheme.mDefaultColors[TextStyle.COLOR_INDEX_BACKGROUND] = 0xFF212121.toInt() // VoltColors.Background
-        scheme.mDefaultColors[TextStyle.COLOR_INDEX_FOREGROUND] = 0xFFECECEC.toInt() // VoltColors.Text
-        scheme.mDefaultColors[TextStyle.COLOR_INDEX_CURSOR] = 0xFF10A37F.toInt()     // VoltColors.Accent
-        scheme.mDefaultColors[8] = 0xFF8E8E9A.toInt()                                 // VoltColors.MutedText
+        scheme.mDefaultColors[TextStyle.COLOR_INDEX_BACKGROUND] = 0xFF000000.toInt() // Termux black
+        scheme.mDefaultColors[TextStyle.COLOR_INDEX_FOREGROUND] = 0xFFFFFFFF.toInt() // Termux white
+        scheme.mDefaultColors[TextStyle.COLOR_INDEX_CURSOR] = 0xFFBCF532.toInt()     // VoltColors.Accent
+        scheme.mDefaultColors[8] = 0xFF9E9E9E.toInt()                                 // grey_500
         scheme.setCursorColorForBackground()
     }
 }
