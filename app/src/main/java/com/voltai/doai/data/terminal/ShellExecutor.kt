@@ -328,13 +328,16 @@ object ShellExecutor {
                 Pair("su -c $command", pb)
             }
             isTermuxRuntimeAvailable -> {
-                val pb = ProcessBuilder(TERMUX_BIN.resolve("sh").absolutePath, "-c", command)
-                pb.directory(workDir ?: File(TERMUX_HOME))
+                val shell = listOf(File(activePrefix, "bin/sh"), File(activePrefix, "bin/bash"))
+                    .firstOrNull { it.isFile }
+                    ?.absolutePath ?: "sh"
+                val pb = ProcessBuilder(shell, "-c", command)
+                pb.directory(workDir ?: File(activeHome))
                 val env = pb.environment()
-                env["PATH"] = "$TERMUX_BIN:/system/bin:/system/xbin:/usr/bin:/bin"
-                env["HOME"] = TERMUX_HOME
-                env["PREFIX"] = TERMUX_PREFIX
-                env["LD_LIBRARY_PATH"] = "$TERMUX_PREFIX/lib"
+                env["PATH"] = "$activePrefix/bin:/system/bin:/system/xbin:/usr/bin:/bin"
+                env["HOME"] = activeHome
+                env["PREFIX"] = activePrefix
+                env["LD_LIBRARY_PATH"] = "$activePrefix/lib"
                 Pair(command, pb)
             }
             else -> {
