@@ -18,7 +18,7 @@ class TerminalEngineImpl : TerminalEngine {
         val session = TerminalSession(
             id = UUID.randomUUID().toString(),
             isActive = true,
-            currentDirectory = ShellExecutor.TERMUX_HOME
+            currentDirectory = ShellExecutor.activeHome
         )
         sessions[session.id] = session
         outputs[session.id] = MutableSharedFlow(extraBufferCapacity = 100)
