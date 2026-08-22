@@ -121,7 +121,8 @@ object ShellExecutor {
             )
         }
         val bindArgs = binds.joinToString(" ") { "--bind $it" }
-        return execute("proot-distro login ubuntu $bindArgs -- $command", timeoutSeconds)
+        val loginCommand = "proot-distro login ubuntu" + if (bindArgs.isBlank()) "" else " $bindArgs"
+        return execute("$loginCommand -- /bin/sh -lc ${shellQuote(command)}", timeoutSeconds)
     }
 
     /**
@@ -145,7 +146,7 @@ object ShellExecutor {
         }
         val bindArgs = binds.joinToString(" ") { "--bind $it" }
         return executeStreaming(
-            "proot-distro login ubuntu $bindArgs -- $command",
+            "proot-distro login ubuntu" + if (bindArgs.isBlank()) " --" else " $bindArgs --" + " /bin/sh -lc ${shellQuote(command)}",
             timeoutSeconds,
             onChunk
         )
@@ -303,6 +304,8 @@ object ShellExecutor {
             )
         }
     }
+
+    private fun shellQuote(value: String): String = "'" + value.replace("'", "'"'"'") + "'"
 
     private fun buildProcess(command: String, workDir: File?): Pair<String, ProcessBuilder> {
         return when {
