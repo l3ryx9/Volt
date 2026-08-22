@@ -32,13 +32,16 @@ object TermuxRuntimeManager {
     val VIRTUAL_PREFIX: String = "/data/data/com.termux/files/usr"
     val VIRTUAL_HOME: String = "/data/data/com.termux/files/home"
 
-    /** Binaire proot embarqué (extrait par le système dans nativeLibraryDir à l'install). */
-    val PROOT_PATH: String
-        get() = File(context().applicationInfo.nativeLibraryDir, "proot").absolutePath
+    /** Outils natifs du runtime copiés depuis assets/tools (Android ne décompresse pas les assets ici). */
+    private val PROOT_DIR: File
+        get() = File(context().filesDir, "runtime-native")
 
-    /** Répertoire contenant libtalloc.so.2 et libandroid-shmem.so pour proot. */
+    val PROOT_PATH: String
+        get() = File(PROOT_DIR, "proot").absolutePath
+
+    /** Répertoire contenant proot et ses bibliothèques natives. */
     val PROOT_LIB_DIR: String
-        get() = context().applicationInfo.nativeLibraryDir
+        get() = PROOT_DIR.absolutePath
 
     val binDir: File
         get() = File(PREFIX_DIR, "bin")
@@ -61,6 +64,7 @@ object TermuxRuntimeManager {
             appContext = context.applicationContext
         }
         onProgress(0.01f, "Préparation du runtime embarqué…")
+        installNativeTools(context)
         install(context, onProgress)
     }
 
@@ -78,6 +82,20 @@ object TermuxRuntimeManager {
         } catch (e: Exception) {
             lastError = e.message ?: "Erreur inconnue pendant la décompression du runtime"
             false
+        }
+    }
+
+    private fun installNativeTools(context: Context) {
+        val dir = File(context.filesDir, "runtime-native")
+        dir.mkdirs()
+        listOf("proot", "libtalloc.so.2", "libandroid-shmem.so").forEach { name ->
+            val target = File(dir, name)
+            if (!target.isFile || target.length() == 0L) {
+                context.assets.open("tools/$name").use { input ->
+                    FileOutputStream(target).use { output -> input.copyTo(output) }
+                }
+            }
+            if (name == "proot") target.setExecutable(true)
         }
     }
 
@@ -185,7 +203,8 @@ object TermuxRuntimeManager {
      */
     fun buildProcessBuilder(command: String, workDir: File?): ProcessBuilder? {
         if (!isRuntimeInstalled) return null
-        val nativeLibDir = File(context().applicationInfo.nativeLibraryDir)
+        runCatching { installNativeTools(context()) }.getOrElse { return null }
+        val nativeLibDir = File(PROOT_LIB_DIR)
         val proot = File(nativeLibDir, "proot")
         if (!proot.exists() || !File(nativeLibDir, "libtalloc.so.2").exists()) return null
 
