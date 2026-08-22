@@ -30,7 +30,7 @@ object VoltColors {
     val Divider = VoltDarkBorder
     val Error = VoltError
     val Warning = VoltWarning
-    val TerminalBackground = Color(0xFF020302)
+    val TerminalBackground = Color(0xFF000000)
 
     // Variations de l'accent Volt pour garder les onglets lisibles sans
     // réintroduire la palette bleue de l'ancien habillage.
@@ -39,4 +39,14 @@ object VoltColors {
     val TabEditor = Color(0xFFA8DC28)
     val TabSettings = Color(0xFFC8F36A)
     val ClipAccent = Color(0xFFE5FF9C)
+
+    val NavDefault = Color(0xFF2196F3)
+    val NavSelected = Color(0xFF4CAF50)
+    val NavTerminalChat = Color(0xFFF44336)
+
+    // Termux extra keys theme colors
+    val ExtraKeyText = Color(0xFFFFFFFF)          // white
+    val ExtraKeyActiveText = Color(0xFFEF5350)    // red_400
+    val ExtraKeyBackground = Color(0xFF000000)    // black
+    val ExtraKeyActiveBackground = Color(0xFF9E9E9E) // grey_500
 }

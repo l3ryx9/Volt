@@ -36,5 +36,5 @@ class DecompilerImpl(private val commandExecutor: CommandExecutor) : Decompiler 
         return commandExecutor.executeCommand(command)
     }
 
-    private fun shellQuote(value: String): String = "'" + value.replace("'", "'\'''") + "'"
+    private fun shellQuote(value: String): String = "'" + value.replace("'", "'\\''") + "'"
 }

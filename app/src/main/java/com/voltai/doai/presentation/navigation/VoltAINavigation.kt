@@ -3,10 +3,7 @@ package com.voltai.doai.presentation.navigation
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -23,7 +20,6 @@ import com.voltai.doai.data.tools.ToolchainManager
 import com.voltai.doai.data.tools.ToolchainPhase
 import com.voltai.doai.presentation.chat.ChatScreen
 import com.voltai.doai.presentation.connect.QwenConnectScreen
-import com.voltai.doai.presentation.editor.EditorScreen
 import com.voltai.doai.presentation.files.FilesScreen
 import com.voltai.doai.presentation.tools.ToolsScreen
 import com.voltai.doai.presentation.settings.SettingsScreen
@@ -55,29 +51,21 @@ fun VoltAINavigation(storageAccessGranted: Boolean) {
     var dismissedToolchainRun by rememberSaveable { mutableStateOf(0L) }
     var dismissedRepairRun by rememberSaveable { mutableStateOf(0L) }
 
-    // L'installation des dépendances (bootstrap + Ubuntu + bundle) n'est plus
-    // déclenchée automatiquement au lancement. Elle est proposée via une
-    // fenêtre (ToolchainInstallPromptDialog ci-dessous) et ne démarre que
-    // lorsque l'utilisateur appuie sur le bouton « Installer ».
-    //
-    // Remarque : l'ancienne version utilisait LaunchedEffect(toolchainStatus.phase),
-    // c'est-à-dire que la clé de l'effet changeait à chaque mise à jour de
-    // statut (IDLE → RUNNING → …). Comme Compose annule et relance
-    // LaunchedEffect dès que sa clé change, l'installation en cours était
-    // interrompue dès qu'elle passait à RUNNING, ce qui provoquait la boucle
-    // RUNNING → annulation → FAILED → relance → RUNNING… visible comme un
-    // scintillement de la barre de progression qui n'avançait jamais.
+    LaunchedEffect(Unit) {
+        if (!ToolchainManager.isInstalled(context)) {
+            ToolchainManager.ensureTools(context)
+        }
+    }
 
     Scaffold(
         modifier = Modifier.background(VoltColors.Background),
-        contentWindowInsets = WindowInsets.statusBars.only(WindowInsetsSides.Top),
+        contentWindowInsets = WindowInsets(0),
         topBar = {
             when (currentRoute) {
                 Screen.Chat.route, Screen.QwenConnect.route, null -> Unit
-                Screen.Files.route -> VoltAIPageHeader(title = "Fichiers")
-                Screen.Tools.route -> VoltAIPageHeader(title = "Outils")
-                Screen.Editor.route -> VoltAIPageHeader(title = "Éditeur")
-                Screen.Settings.route -> VoltAIPageHeader(title = "Paramètres")
+                Screen.Files.route -> VoltAIPageHeader()
+                Screen.Tools.route -> VoltAIPageHeader()
+                Screen.Settings.route -> VoltAIPageHeader()
                 else -> Unit
             }
         },
@@ -107,7 +95,6 @@ fun VoltAINavigation(storageAccessGranted: Boolean) {
             }
             composable(Screen.Files.route) { FilesScreen() }
             composable(Screen.Tools.route) { ToolsScreen() }
-            composable(Screen.Editor.route) { EditorScreen() }
             composable(Screen.Settings.route) {
                 SettingsScreen(
                     onOpenQwenConnect = { navigateTo(navController, Screen.QwenConnect.route) }
@@ -118,16 +105,6 @@ fun VoltAINavigation(storageAccessGranted: Boolean) {
                     onBack = { navController.popBackStack() }
                 )
             }
-        }
-
-        if (toolchainStatus.phase == ToolchainPhase.IDLE &&
-            !ToolchainManager.isInstalled(context)
-        ) {
-            ToolchainInstallPromptDialog(
-                onInstall = {
-                    scope.launch { ToolchainManager.ensureTools(context) }
-                }
-            )
         }
 
         if (toolchainStatus.phase == ToolchainPhase.RUNNING &&
@@ -162,37 +139,6 @@ fun VoltAINavigation(storageAccessGranted: Boolean) {
             )
         }
     }
-}
-
-@Composable
-private fun ToolchainInstallPromptDialog(onInstall: () -> Unit) {
-    AlertDialog(
-        onDismissRequest = {},
-        title = {
-            Text(
-                text = "Dépendances requises",
-                color = VoltColors.Text
-            )
-        },
-        text = {
-            Text(
-                text = "Installer les dépendances nécessaires",
-                color = VoltColors.MutedText
-            )
-        },
-        confirmButton = {
-            Button(
-                onClick = onInstall,
-                colors = ButtonDefaults.buttonColors(
-                    backgroundColor = VoltColors.Accent,
-                    contentColor = VoltColors.Text
-                )
-            ) {
-                Text("Installer")
-            }
-        },
-        backgroundColor = VoltColors.Surface
-    )
 }
 
 @Composable

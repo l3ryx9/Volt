@@ -16,9 +16,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
@@ -37,20 +40,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.voltai.doai.presentation.VoltColors
 
-/**
- * Menu latéral des sessions — ouvert depuis l'icône hamburger de la barre
- * du haut, sur le modèle de la maquette voltai-v4. Le moteur applicatif
- * (ChatViewModel/AgentEngine) ne conserve qu'une seule session active à la
- * fois : cette liste reflète donc la session en cours plutôt que
- * d'inventer un historique multi-sessions qui n'existe pas encore.
- */
 @Composable
 fun SessionsSidebar(
     isOpen: Boolean,
-    messageCount: Int,
+    sessions: List<ChatSession>,
+    activeSessionId: Int,
+    canCreateSession: Boolean,
     onClose: () -> Unit,
     onNewSession: () -> Unit,
-    onClearSession: () -> Unit
+    onSwitchSession: (Int) -> Unit,
+    onDeleteSession: (Int) -> Unit
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
         AnimatedVisibility(
@@ -105,10 +104,9 @@ fun SessionsSidebar(
                         .padding(horizontal = 16.dp, vertical = 4.dp)
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(10.dp))
-                        .background(VoltColors.Accent)
-                        .clickable {
+                        .background(if (canCreateSession) VoltColors.Accent else VoltColors.Divider)
+                        .clickable(enabled = canCreateSession) {
                             onNewSession()
-                            onClose()
                         }
                         .padding(vertical = 10.dp),
                     horizontalArrangement = Arrangement.Center,
@@ -117,43 +115,67 @@ fun SessionsSidebar(
                     Icon(
                         imageVector = Icons.Default.Add,
                         contentDescription = null,
-                        tint = androidx.compose.ui.graphics.Color.White,
+                        tint = if (canCreateSession) androidx.compose.ui.graphics.Color.White else VoltColors.MutedText,
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(Modifier.width(6.dp))
-                    Text("Nouvelle session", color = androidx.compose.ui.graphics.Color.White, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+                    Text(
+                        "Nouvelle session (${sessions.size}/${ChatViewModel.MAX_SESSIONS})",
+                        color = if (canCreateSession) androidx.compose.ui.graphics.Color.White else VoltColors.MutedText,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 13.sp
+                    )
                 }
 
-                Spacer(Modifier.width(0.dp).padding(top = 8.dp))
+                Spacer(Modifier.height(8.dp))
 
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(VoltColors.ElevatedSurface)
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                LazyColumn(
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = "Session en cours",
-                            color = VoltColors.Text,
-                            fontWeight = FontWeight.Medium,
-                            fontSize = 13.sp
-                        )
-                        Text(
-                            text = "$messageCount message(s)",
-                            color = VoltColors.MutedText,
-                            fontSize = 11.sp
-                        )
-                    }
-                    IconButton(onClick = onClearSession, modifier = Modifier.size(28.dp)) {
-                        Icon(
-                            imageVector = Icons.Default.DeleteOutline,
-                            contentDescription = "Vider la session",
-                            tint = VoltColors.Error,
-                            modifier = Modifier.size(16.dp)
-                        )
+                    items(sessions) { session ->
+                        val isActive = session.id == activeSessionId
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(
+                                    if (isActive) VoltColors.ElevatedSurface
+                                    else VoltColors.Surface
+                                )
+                                .clickable {
+                                    onSwitchSession(session.id)
+                                    onClose()
+                                }
+                                .padding(horizontal = 16.dp, vertical = 12.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "Session ${session.id}",
+                                    color = if (isActive) VoltColors.AccentBright else VoltColors.Text,
+                                    fontWeight = if (isActive) FontWeight.Bold else FontWeight.Medium,
+                                    fontSize = 13.sp
+                                )
+                                Text(
+                                    text = "${session.messages.size} message(s)",
+                                    color = VoltColors.MutedText,
+                                    fontSize = 11.sp
+                                )
+                            }
+                            if (sessions.size > 1) {
+                                IconButton(
+                                    onClick = { onDeleteSession(session.id) },
+                                    modifier = Modifier.size(28.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.DeleteOutline,
+                                        contentDescription = "Supprimer",
+                                        tint = VoltColors.Error,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
             }

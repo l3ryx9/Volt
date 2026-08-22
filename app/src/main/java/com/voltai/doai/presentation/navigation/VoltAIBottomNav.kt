@@ -9,12 +9,10 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.material.Icon
-import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Chat
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Terminal
@@ -27,11 +25,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.voltai.doai.presentation.VoltColors
 
-/**
- * Barre de navigation basse — reprend la maquette voltai-v4 : Outils,
- * Fichiers, un onglet central qui bascule Chat ↔ Terminal (uniquement
- * significatif sur l'écran Chat, il y ramène sinon), Éditeur, Réglages.
- */
 @Composable
 fun VoltAIBottomNav(
     currentRoute: String?,
@@ -57,14 +50,12 @@ fun VoltAIBottomNav(
         NavTab(
             label = "Outils",
             icon = Icons.Default.Build,
-            color = VoltColors.TabTools,
             selected = currentRoute == Screen.Tools.route,
             onClick = { onNavigate(Screen.Tools.route) }
         )
         NavTab(
             label = "Fichiers",
             icon = Icons.Default.Folder,
-            color = VoltColors.TabFiles,
             selected = currentRoute == Screen.Files.route,
             onClick = { onNavigate(Screen.Files.route) }
         )
@@ -80,16 +71,8 @@ fun VoltAIBottomNav(
             }
         )
         NavTab(
-            label = "Éditeur",
-            icon = Icons.Default.Edit,
-            color = VoltColors.TabEditor,
-            selected = currentRoute == Screen.Editor.route,
-            onClick = { onNavigate(Screen.Editor.route) }
-        )
-        NavTab(
-            label = "Réglages",
+            label = "Reglages",
             icon = Icons.Default.Settings,
-            color = VoltColors.TabSettings,
             selected = currentRoute == Screen.Settings.route,
             onClick = { onNavigate(Screen.Settings.route) }
         )
@@ -100,7 +83,6 @@ fun VoltAIBottomNav(
 private fun androidx.compose.foundation.layout.RowScope.NavTab(
     label: String,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
-    color: androidx.compose.ui.graphics.Color,
     selected: Boolean,
     onClick: () -> Unit
 ) {
@@ -112,7 +94,7 @@ private fun androidx.compose.foundation.layout.RowScope.NavTab(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        val tint = if (selected) color else VoltColors.MutedText
+        val tint = if (selected) VoltColors.NavSelected else VoltColors.NavDefault
         Icon(imageVector = icon, contentDescription = label, tint = tint, modifier = Modifier.height(22.dp))
         Text(
             text = label,
@@ -133,7 +115,11 @@ private fun androidx.compose.foundation.layout.RowScope.MainNavTab(
     val showTerminalIcon = !isChatRoute || !isTerminalMode
     val icon = if (showTerminalIcon) Icons.Default.Terminal else Icons.Default.Chat
     val label = if (showTerminalIcon) "Terminal" else "Chat"
-    val tint = if (isChatRoute && isTerminalMode) VoltColors.Text else VoltColors.AccentBright
+    val tint = when {
+        isChatRoute && !isTerminalMode -> VoltColors.NavTerminalChat
+        isChatRoute && isTerminalMode -> VoltColors.NavSelected
+        else -> VoltColors.NavDefault
+    }
 
     Column(
         modifier = Modifier
