@@ -337,7 +337,9 @@ class TerminalSessionHolder {
         val env = arrayOf(
             "HOME=$vHome",
             "PREFIX=$vPrefix",
-            "PATH=$vPrefix/bin:$vPrefix/bin/applets",
+            "PATH=$vPrefix/bin:$vPrefix/bin/applets:/usr/local/bin:/root/voltai/usr/bin:/usr/bin:/bin",
+            "JAVA_HOME=/root/voltai/usr/lib/jvm/java-17-openjdk",
+            "PYTHONPATH=/root/voltai/usr/lib/python3.14/site-packages",
             "TMPDIR=$vPrefix/tmp",
             "TERM=xterm-256color",
             "LD_LIBRARY_PATH=${TermuxRuntimeManager.PROOT_LIB_DIR}"
