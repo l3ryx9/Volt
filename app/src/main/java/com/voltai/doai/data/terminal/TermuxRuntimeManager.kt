@@ -199,7 +199,11 @@ object TermuxRuntimeManager {
         val env = pb.environment()
         env["HOME"] = VIRTUAL_HOME
         env["PREFIX"] = VIRTUAL_PREFIX
-        env["PATH"] = "$VIRTUAL_PREFIX/bin:$VIRTUAL_PREFIX/bin/applets"
+        env["PATH"] = "$VIRTUAL_PREFIX/bin:$VIRTUAL_PREFIX/bin/applets:/usr/local/bin:/root/voltai/usr/bin:/usr/bin:/bin"
+        // Keep the bootstrap paths virtual, but expose the Ubuntu-installed toolchain.
+        // PREFIX_DIR remains the only real host path used for filesystem checks.
+        env["JAVA_HOME"] = "/root/voltai/usr/lib/jvm/java-17-openjdk"
+        env["PYTHONPATH"] = "/root/voltai/usr/lib/python3.14/site-packages"
         env["TMPDIR"] = "$VIRTUAL_PREFIX/tmp"
         env["TERM"] = "xterm-256color"
         env["LD_LIBRARY_PATH"] = nativeLibDir.absolutePath
