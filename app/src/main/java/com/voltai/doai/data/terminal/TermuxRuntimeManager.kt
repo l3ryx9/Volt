@@ -255,8 +255,9 @@ object TermuxRuntimeManager {
         val pb = ProcessBuilder(
             proot.absolutePath,
             "-b", "$PREFIX_DIR:$VIRTUAL_PREFIX",
+            "-b", "$HOME_DIR:$VIRTUAL_HOME",
             "-w", workDir?.absolutePath ?: VIRTUAL_HOME,
-            "$VIRTUAL_PREFIX/bin/login",
+            "$VIRTUAL_PREFIX/bin/bash",
             "-c", command
         )
         val env = pb.environment()

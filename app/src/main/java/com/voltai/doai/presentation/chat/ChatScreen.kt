@@ -80,6 +80,9 @@ fun ChatScreen(
     val pushing by viewModel.pushing.collectAsState()
     val pushResult by viewModel.pushResult.collectAsState()
 
+    val chatSessions by viewModel.sessions.collectAsState()
+    val activeSessionId by viewModel.activeSessionId.collectAsState()
+
     var repoMenuExpanded by remember { mutableStateOf(false) }
     var sidebarOpen by remember { mutableStateOf(false) }
 
@@ -170,10 +173,13 @@ fun ChatScreen(
 
         SessionsSidebar(
             isOpen = sidebarOpen,
-            messageCount = messages.size,
+            sessions = chatSessions,
+            activeSessionId = activeSessionId,
+            canCreateSession = chatSessions.size < ChatViewModel.MAX_SESSIONS,
             onClose = { sidebarOpen = false },
             onNewSession = viewModel::newSession,
-            onClearSession = viewModel::clearSession
+            onSwitchSession = viewModel::switchSession,
+            onDeleteSession = viewModel::deleteSession
         )
     }
 }

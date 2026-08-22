@@ -39,4 +39,8 @@ object VoltColors {
     val TabEditor = Color(0xFFA8DC28)
     val TabSettings = Color(0xFFC8F36A)
     val ClipAccent = Color(0xFFE5FF9C)
+
+    val NavDefault = Color(0xFF2196F3)
+    val NavSelected = Color(0xFF4CAF50)
+    val NavTerminalChat = Color(0xFFF44336)
 }

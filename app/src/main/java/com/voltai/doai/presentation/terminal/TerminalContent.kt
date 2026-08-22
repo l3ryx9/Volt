@@ -4,7 +4,6 @@ import android.view.KeyEvent
 import android.view.MotionEvent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,8 +12,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Divider
 import androidx.compose.material.Text
@@ -95,33 +92,45 @@ fun TerminalContent() {
 @Composable
 private fun TerminalShortcutBar(holder: TerminalSessionHolder) {
     Divider(color = VoltColors.Divider, thickness = 1.dp)
-    Row(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
             .background(VoltColors.Surface)
-            .horizontalScroll(rememberScrollState())
             .padding(horizontal = 6.dp, vertical = 6.dp),
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        // Touches spéciales
-        ShortcutKey("ESC", holder) { it.sendEsc() }
-        ShortcutKey("TAB", holder) { it.sendTab() }
-        ShortcutKey("CTRL", holder, toggle = true) { it.toggleCtrl() }
-        ShortcutKey("ALT", holder, toggle = true) { it.toggleAlt() }
+        ShortcutRow(holder, "ESC" to { h: TerminalSessionHolder -> h.sendEsc() }, "TAB" to { h: TerminalSessionHolder -> h.sendTab() })
+        ShortcutRow(holder, "CTRL" to { h: TerminalSessionHolder -> h.toggleCtrl() }, "ALT" to { h: TerminalSessionHolder -> h.toggleAlt() }, toggleLeft = true, toggleRight = true)
+        ShortcutRow(holder, "←" to { h: TerminalSessionHolder -> h.sendArrow(KeyEvent.KEYCODE_DPAD_LEFT) }, "→" to { h: TerminalSessionHolder -> h.sendArrow(KeyEvent.KEYCODE_DPAD_RIGHT) })
+        ShortcutRow(holder, "↑" to { h: TerminalSessionHolder -> h.sendArrow(KeyEvent.KEYCODE_DPAD_UP) }, "↓" to { h: TerminalSessionHolder -> h.sendArrow(KeyEvent.KEYCODE_DPAD_DOWN) })
+        ShortcutRow(holder, "/" to { h: TerminalSessionHolder -> h.sendChar('/') }, "-" to { h: TerminalSessionHolder -> h.sendChar('-') })
+        ShortcutRow(holder, "|" to { h: TerminalSessionHolder -> h.sendChar('|') }, "~" to { h: TerminalSessionHolder -> h.sendChar('~') })
+        ShortcutRow(holder, "_" to { h: TerminalSessionHolder -> h.sendChar('_') }, null)
+    }
+}
 
-        // Flèches directionnelles
-        ShortcutKey("←", holder) { it.sendArrow(KeyEvent.KEYCODE_DPAD_LEFT) }
-        ShortcutKey("↑", holder) { it.sendArrow(KeyEvent.KEYCODE_DPAD_UP) }
-        ShortcutKey("↓", holder) { it.sendArrow(KeyEvent.KEYCODE_DPAD_DOWN) }
-        ShortcutKey("→", holder) { it.sendArrow(KeyEvent.KEYCODE_DPAD_RIGHT) }
-
-        // Caractères utiles absents du clavier standard
-        ShortcutKey("/", holder) { it.sendChar('/') }
-        ShortcutKey("-", holder) { it.sendChar('-') }
-        ShortcutKey("|", holder) { it.sendChar('|') }
-        ShortcutKey("~", holder) { it.sendChar('~') }
-        ShortcutKey("_", holder) { it.sendChar('_') }
+@Composable
+private fun ShortcutRow(
+    holder: TerminalSessionHolder,
+    left: Pair<String, (TerminalSessionHolder) -> Unit>,
+    right: Pair<String, (TerminalSessionHolder) -> Unit>?,
+    toggleLeft: Boolean = false,
+    toggleRight: Boolean = false
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        Box(modifier = Modifier.weight(1f)) {
+            ShortcutKey(left.first, holder, toggle = toggleLeft) { left.second(it) }
+        }
+        if (right != null) {
+            Box(modifier = Modifier.weight(1f)) {
+                ShortcutKey(right.first, holder, toggle = toggleRight) { right.second(it) }
+            }
+        } else {
+            Box(modifier = Modifier.weight(1f))
+        }
     }
 }
 
@@ -134,8 +143,8 @@ private fun ShortcutKey(
 ) {
     Box(
         modifier = Modifier
+            .fillMaxWidth()
             .height(36.dp)
-            .widthIn(min = 38.dp)
             .clip(RoundedCornerShape(8.dp))
             .background(VoltColors.ElevatedSurface)
             .clickable { action(holder) }
@@ -332,7 +341,7 @@ class TerminalSessionHolder {
             "-b", "$prefixReal:$vPrefix",
             "-b", "$homeReal:$vHome",
             "-w", vHome,
-            "$vPrefix/bin/login"
+            "$vPrefix/bin/bash"
         )
         val env = arrayOf(
             "HOME=$vHome",

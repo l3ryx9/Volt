@@ -6,6 +6,7 @@ import android.util.Log
 import com.itsaky.androidide.treesitter.TreeSitter
 import com.voltai.doai.data.qwen.PersistentCookieStore
 import com.voltai.doai.data.terminal.TermuxRuntimeManager
+import com.voltai.doai.data.tools.ToolchainManager
 import com.voltai.doai.di.ServiceLocator
 import com.voltai.doai.service.VoltAIKeepAliveService
 import kotlinx.coroutines.CoroutineScope
@@ -46,12 +47,9 @@ class VoltAIApplication : Application() {
             ServiceLocator.modelManager.ensureModel()
         }
 
-        // L'installation du runtime embarqué + des outils (proot-distro →
-        // Ubuntu → bundle dans /root/voltai) n'est plus lancée automatiquement
-        // ici : elle est déclenchée depuis l'UI (VoltAINavigation) quand
-        // l'utilisateur appuie sur le bouton « Installer » de la fenêtre de
-        // dépendances. ToolchainManager.ensureTools reste idempotent, donc
-        // les lancements suivants (une fois installé) restent instantanés.
+        applicationScope.launch {
+            ToolchainManager.ensureTools(this@VoltAIApplication)
+        }
     }
 
     /**
