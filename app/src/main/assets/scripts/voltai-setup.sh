@@ -22,12 +22,18 @@ U() { proot-distro login ubuntu -- "$@"; }
 if [ ! -x "$PREFIX/bin/proot-distro" ]; then
   log 10 "Installation de proot-distro…"
   tries=0
-  until pkg update -y >/dev/null 2>&1; do
+  pkg_output=""
+  until pkg_output="$(pkg update -y 2>&1)"; do
     tries=$((tries + 1))
-    [ "$tries" -ge 3 ] && err "pkg update a échoué (réseau requis)"
+    if [ "$tries" -ge 3 ]; then
+      detail="$(printf '%s\n' "$pkg_output" | tail -n 8 | tr '\n' ' ' | sed 's/[[:space:]][[:space:]]*/ /g')"
+      [ -n "$detail" ] || detail="aucun détail retourné par pkg"
+      err "pkg update a échoué : $detail"
+    fi
     log 10 "Nouvel essai pkg update ($tries)…"
   done
-  pkg install -y proot-distro >/dev/null 2>&1 || err "pkg install proot-distro a échoué"
+  pkg_output="$(pkg install -y proot-distro 2>&1)" ||
+    err "pkg install proot-distro a échoué : $(printf '%s\n' "$pkg_output" | tail -n 8 | tr '\n' ' ' | sed 's/[[:space:]][[:space:]]*/ /g')"
 fi
 # Vérification : proot-distro est bien exécutable
 [ -x "$PREFIX/bin/proot-distro" ] || err "proot-distro absent après installation"
